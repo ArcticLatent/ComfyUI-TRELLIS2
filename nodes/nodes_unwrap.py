@@ -7,9 +7,18 @@ from datetime import datetime
 from pathlib import Path
 
 import folder_paths
-
 from comfy_env import isolated
-from .utils import logger
+
+# logger import fix
+try:
+    from .utils import logger
+except ImportError:
+    import importlib.util, pathlib
+    _p = pathlib.Path(__file__).resolve().parent / "utils" / "__init__.py"
+    spec = importlib.util.spec_from_file_location("trellis2_utils", _p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    logger = mod.logger
 
 
 @isolated(env="trellis2", import_paths=[".", ".."])
