@@ -16,15 +16,6 @@ You can install this custom node with Arctic ComfyUI Installer: https://github.c
 https://github.com/user-attachments/assets/e28e4a74-b119-4303-8e30-63361f26aa88
 
 
-## Requirements
-
-- Python 3.10+
-- PyTorch 2.0+
-- CUDA-compatible GPU with 8GB VRAM (16GB+ recommended)
-
-All dependencies should theoretically install through wheel by running install.py!
-This node was made for comfyui-manager install, but you can also pip install requirements and "python install.py" manually.
-
 ## Disclaimer
 
 This repo is for my custom Arctic Latent installation of ComfyUI with my custom ComfyUI Linux install tool. If you are on Windows or using a different Linux installation, please use: https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2
@@ -76,6 +67,7 @@ Join the [Comfy3D Discord](https://discord.gg/bcdQCUjnHE) for help, updates, and
 ## Credits
 
 - [TRELLIS.2](https://github.com/microsoft/TRELLIS.2) by Microsoft Research
+- [ComfyUI-TRELLIS2](https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2)
 
 ## Contributing
 
