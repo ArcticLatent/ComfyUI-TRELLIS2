@@ -6,7 +6,7 @@ Generate high-quality 3D meshes with PBR (Physically Based Rendering) materials 
 
 You can install this custom node with Arctic ComfyUI Installer: https://github.com/ArcticLatent/linux-comfy-installer
 
-## Example Workfloww
+## Example Workflow
 
 ![tpose](docs/tpose.png)
 
