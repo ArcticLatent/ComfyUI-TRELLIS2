@@ -67,7 +67,7 @@ Join the [Comfy3D Discord](https://discord.gg/bcdQCUjnHE) for help, updates, and
 ## Credits
 
 - [TRELLIS.2](https://github.com/microsoft/TRELLIS.2) by Microsoft Research
-- [ComfyUI-TRELLIS2](https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2)
+- [ComfyUI-TRELLIS2](https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2) by Andrea Pozzetti
 
 ## Contributing
 
