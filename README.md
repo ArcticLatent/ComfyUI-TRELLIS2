@@ -27,6 +27,10 @@ https://github.com/user-attachments/assets/e28e4a74-b119-4303-8e30-63361f26aa88
 All dependencies should theoretically install through wheel by running install.py!
 This node was made for comfyui-manager install, but you can also pip install requirements and "python install.py" manually.
 
+## Disclaimer
+
+This repo is for my custom Arctic Latent installation of ComfyUI with my custom ComfyUI Linux install tool. If you are on Windows or using a different Linux installation, please use: https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2
+
 ## Notes
 
 The video render nodes will be implemented soon! Not yet working.
