@@ -4,7 +4,6 @@ description = "ComfyUI nodes for TRELLIS.2 - Microsoft's image-to-3D generation 
 version = "0.1.7"
 license = "MIT"
 dependencies = [
-    "comfy-env>0.0.1",
     "huggingface_hub",
     "pillow",
     "numpy",

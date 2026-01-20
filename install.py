@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 """
-Installation script for ComfyUI-TRELLIS2 with isolated environment.
+Installation script for ComfyUI-TRELLIS2 with ComfyUI venv.
 
-This script sets up an isolated Python virtual environment with all dependencies
-required for TRELLIS2. The environment is completely isolated from
-ComfyUI's main environment, preventing any dependency conflicts.
-
-Uses comfy-env package for environment management.
+This script installs all dependencies into ComfyUI's main venv.
 """
 
 import sys
@@ -147,7 +143,7 @@ def ensure_vcredist():
 
 
 # =============================================================================
-# comfy-env bootstrap
+# ComfyUI venv helpers
 # =============================================================================
 
 def _get_comfyui_venv_python(node_root):
@@ -158,74 +154,6 @@ def _get_comfyui_venv_python(node_root):
     else:
         python_path = comfyui_root / "venv" / "bin" / "python"
     return python_path if python_path.exists() else None
-
-
-def _is_truthy(value):
-    if value is None:
-        return False
-    return str(value).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def ensure_comfy_env(node_root):
-    """Ensure comfy-env is installed in the ComfyUI venv (or current env)."""
-    try:
-        import comfy_env  # noqa: F401
-        return True
-    except Exception:
-        print("[TRELLIS2] comfy-env not found; attempting to install it...")
-
-    venv_python = _get_comfyui_venv_python(node_root)
-    python_exec = str(venv_python) if venv_python else sys.executable
-    if venv_python:
-        print(f"[TRELLIS2] Using ComfyUI venv python: {venv_python}")
-    else:
-        print("[TRELLIS2] ComfyUI venv python not found; using current Python.")
-
-    try:
-        result = subprocess.run(
-            [python_exec, "-m", "pip", "install", "comfy-env>=0.0.11"],
-            check=False
-        )
-    except Exception as e:
-        print(f"[TRELLIS2] Failed to run pip: {e}")
-        return False
-
-    if result.returncode != 0:
-        print(f"[TRELLIS2] pip exited with code {result.returncode}")
-        return False
-
-    try:
-        import comfy_env  # noqa: F401
-        return True
-    except Exception as e:
-        print(f"[TRELLIS2] comfy-env still not importable: {e}")
-        return False
-
-
-def ensure_venv_packages(node_root):
-    """Ensure required packages are installed in the ComfyUI venv."""
-    packages = ["easydict", "plyfile", "zstandard", "trimesh"]
-    venv_python = _get_comfyui_venv_python(node_root)
-    python_exec = str(venv_python) if venv_python else sys.executable
-    if venv_python:
-        print(f"[TRELLIS2] Using ComfyUI venv python: {venv_python}")
-    else:
-        print("[TRELLIS2] ComfyUI venv python not found; using current Python.")
-
-    try:
-        result = subprocess.run(
-            [python_exec, "-m", "pip", "install", *packages],
-            check=False
-        )
-    except Exception as e:
-        print(f"[TRELLIS2] Failed to run pip: {e}")
-        return False
-
-    if result.returncode != 0:
-        print(f"[TRELLIS2] pip exited with code {result.returncode}")
-        return False
-
-    return True
 
 
 def ensure_venv_requirements(node_root):
@@ -258,6 +186,63 @@ def ensure_venv_requirements(node_root):
     return True
 
 
+def _split_env_list(value):
+    if not value:
+        return []
+    parts = []
+    for item in value.replace(";", ",").split(","):
+        item = item.strip()
+        if item:
+            parts.append(item)
+    return parts
+
+
+def ensure_cuda_packages(node_root):
+    """Install CUDA extension packages into the ComfyUI venv."""
+    wheel_urls = [
+        "https://huggingface.co/datasets/arcticlatent/trellis2/resolve/main/cumesh-0.0.1-cp312-cp312-linux_x86_64.whl",
+        "https://huggingface.co/datasets/arcticlatent/trellis2/resolve/main/flex_gemm-1.0.0-cp312-cp312-linux_x86_64.whl",
+        "https://huggingface.co/datasets/arcticlatent/trellis2/resolve/main/nvdiffrast-0.4.0-cp312-cp312-linux_x86_64.whl",
+        "https://huggingface.co/datasets/arcticlatent/trellis2/resolve/main/nvdiffrec_render-0.0.0-cp312-cp312-linux_x86_64.whl",
+        "https://huggingface.co/datasets/arcticlatent/trellis2/resolve/main/o_voxel-0.0.1-cp312-cp312-linux_x86_64.whl",
+    ]
+    venv_python = _get_comfyui_venv_python(node_root)
+    python_exec = str(venv_python) if venv_python else sys.executable
+    if venv_python:
+        print(f"[TRELLIS2] Using ComfyUI venv python: {venv_python}")
+    else:
+        print("[TRELLIS2] ComfyUI venv python not found; using current Python.")
+
+    extra_index_urls = _split_env_list(os.environ.get("TRELLIS2_WHEEL_INDEX_URL"))
+    find_links = _split_env_list(os.environ.get("TRELLIS2_WHEEL_FIND_LINKS"))
+
+    cmd = [python_exec, "-m", "pip", "install", *wheel_urls]
+    for url in extra_index_urls:
+        cmd.extend(["--extra-index-url", url])
+    for link in find_links:
+        cmd.extend(["--find-links", link])
+
+    if extra_index_urls or find_links:
+        print("[TRELLIS2] Using custom wheel sources for CUDA packages.")
+    else:
+        print("[TRELLIS2] No custom wheel sources set for CUDA packages.")
+
+    try:
+        result = subprocess.run(cmd, check=False)
+    except Exception as e:
+        print(f"[TRELLIS2] Failed to run pip: {e}")
+        return False
+
+    if result.returncode != 0:
+        print(f"[TRELLIS2] pip exited with code {result.returncode}")
+        print("[TRELLIS2] If these wheels are not on PyPI, set:")
+        print("  TRELLIS2_WHEEL_INDEX_URL=https://... (comma-separated for multiple)")
+        print("  TRELLIS2_WHEEL_FIND_LINKS=/path/to/wheels (comma-separated for multiple)")
+        return False
+
+    return True
+
+
 # =============================================================================
 # Main Installation
 # =============================================================================
@@ -275,67 +260,15 @@ def main():
         print("[TRELLIS2] WARNING: VC++ Redistributable installation failed.")
         print("[TRELLIS2] Some features may not work. Continuing anyway...")
 
-    if not _is_truthy(os.environ.get("TRELLIS2_ENABLE_COMFY_ENV")):
-        print("[TRELLIS2] Installing requirements into ComfyUI venv.")
-        if not ensure_venv_requirements(node_root):
-            print("[TRELLIS2] ERROR: Failed to install requirements into venv.")
-            return 1
-        return 0
-
-    if not ensure_comfy_env(node_root):
-        print("[TRELLIS2] ERROR: comfy-env is required for isolated installation.")
+    print("[TRELLIS2] Installing requirements into ComfyUI venv.")
+    if not ensure_venv_requirements(node_root):
+        print("[TRELLIS2] ERROR: Failed to install requirements into venv.")
         return 1
-
-    if not ensure_venv_packages(node_root):
-        print("[TRELLIS2] ERROR: Failed to install required venv packages.")
+    if not ensure_cuda_packages(node_root):
+        print("[TRELLIS2] ERROR: Failed to install CUDA extension packages.")
         return 1
+    return 0
 
-    from comfy_env import IsolatedEnvManager, discover_config
-
-    # Load environment config from comfyui_env.toml (v2 schema)
-    config = discover_config(node_root)
-    if config is None:
-        print("[TRELLIS2] ERROR: Could not find comfyui_env.toml")
-        return 1
-
-    # Get the trellis2 isolated environment
-    if "trellis2" not in config.envs:
-        print("[TRELLIS2] ERROR: No 'trellis2' environment defined in config")
-        return 1
-
-    env_config = config.envs["trellis2"]
-
-    print(f"[TRELLIS2] Loaded config: {env_config.name}")
-    print(f"[TRELLIS2]   CUDA: {env_config.cuda}")
-    print(f"[TRELLIS2]   PyTorch: {env_config.pytorch_version}")
-    print(f"[TRELLIS2]   Requirements: {len(env_config.requirements)} packages")
-    print(f"[TRELLIS2]   CUDA packages: {len(env_config.no_deps_requirements)} packages")
-
-    # Create environment manager
-    def log(msg):
-        print(f"[TRELLIS2] {msg}")
-
-    manager = IsolatedEnvManager(base_dir=node_root, log_callback=log)
-
-    # Check if already ready
-    if manager.is_ready(env_config, verify_packages=["torch", "nvdiffrast"]):
-        env_dir = manager.get_env_dir(env_config)
-        print("[TRELLIS2] Isolated environment already exists and is ready!")
-        print(f"[TRELLIS2] Location: {env_dir}")
-        print("[TRELLIS2] To reinstall, delete the environment directory.")
-        return 0
-
-    # Setup environment
-    try:
-        manager.setup(env_config, verify_packages=["torch", "nvdiffrast"])
-        print("\n" + "=" * 60)
-        print("[TRELLIS2] Installation completed successfully!")
-        print("=" * 60)
-        return 0
-    except Exception as e:
-        print(f"\n[TRELLIS2] Installation FAILED: {e}")
-        print("[TRELLIS2] Report issues at: https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2/issues")
-        return 1
 
 
 if __name__ == "__main__":
