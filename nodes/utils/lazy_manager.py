@@ -20,7 +20,7 @@ _LAZY_MANAGER: Optional["LazyModelManager"] = None
 def get_model_manager(
     model_name: str = "microsoft/TRELLIS.2-4B",
     resolution: str = "1024_cascade",
-    attn_backend: str = "flash_attn",
+    attn_backend: str = "auto",
     vram_mode: str = "keep_loaded",
 ) -> "LazyModelManager":
     """
@@ -114,7 +114,7 @@ class LazyModelManager:
         self,
         model_name: str = "microsoft/TRELLIS.2-4B",
         resolution: str = "1024_cascade",
-        attn_backend: str = "flash_attn",
+        attn_backend: str = "auto",
         vram_mode: str = "keep_loaded",
     ):
         self.model_name = model_name
@@ -142,6 +142,10 @@ class LazyModelManager:
         # Block sageattn - not yet implemented
         if self.attn_backend == "sageattn":
             raise NotImplementedError("sage_attn not yet implemented!")
+
+        if self.attn_backend == "auto":
+            print("[TRELLIS2] Attention backend set to: auto", file=sys.stderr)
+            return
 
         try:
             from trellis2.modules.attention import config as dense_config

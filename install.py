@@ -160,6 +160,12 @@ def _get_comfyui_venv_python(node_root):
     return python_path if python_path.exists() else None
 
 
+def _is_truthy(value):
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def ensure_comfy_env(node_root):
     """Ensure comfy-env is installed in the ComfyUI venv (or current env)."""
     try:
@@ -222,6 +228,36 @@ def ensure_venv_packages(node_root):
     return True
 
 
+def ensure_venv_requirements(node_root):
+    """Install requirements.txt into the ComfyUI venv."""
+    req_path = node_root / "requirements.txt"
+    if not req_path.exists():
+        print(f"[TRELLIS2] requirements.txt not found at {req_path}")
+        return False
+
+    venv_python = _get_comfyui_venv_python(node_root)
+    python_exec = str(venv_python) if venv_python else sys.executable
+    if venv_python:
+        print(f"[TRELLIS2] Using ComfyUI venv python: {venv_python}")
+    else:
+        print("[TRELLIS2] ComfyUI venv python not found; using current Python.")
+
+    try:
+        result = subprocess.run(
+            [python_exec, "-m", "pip", "install", "-r", str(req_path)],
+            check=False
+        )
+    except Exception as e:
+        print(f"[TRELLIS2] Failed to run pip: {e}")
+        return False
+
+    if result.returncode != 0:
+        print(f"[TRELLIS2] pip exited with code {result.returncode}")
+        return False
+
+    return True
+
+
 # =============================================================================
 # Main Installation
 # =============================================================================
@@ -229,16 +265,25 @@ def ensure_venv_packages(node_root):
 def main():
     """Main installation function."""
     print("\n" + "=" * 60)
-    print("ComfyUI-TRELLIS2 Installation (Isolated Environment)")
+    print("ComfyUI-TRELLIS2 Installation (ComfyUI venv)")
     print("=" * 60)
+
+    node_root = Path(__file__).parent.absolute()
 
     # Check VC++ Redistributable first (required for PyTorch CUDA and native extensions)
     if not ensure_vcredist():
         print("[TRELLIS2] WARNING: VC++ Redistributable installation failed.")
         print("[TRELLIS2] Some features may not work. Continuing anyway...")
 
+    if not _is_truthy(os.environ.get("TRELLIS2_ENABLE_COMFY_ENV")):
+        print("[TRELLIS2] Installing requirements into ComfyUI venv.")
+        if not ensure_venv_requirements(node_root):
+            print("[TRELLIS2] ERROR: Failed to install requirements into venv.")
+            return 1
+        return 0
+
     if not ensure_comfy_env(node_root):
-        print("[TRELLIS2] ERROR: comfy-env is required for installation.")
+        print("[TRELLIS2] ERROR: comfy-env is required for isolated installation.")
         return 1
 
     if not ensure_venv_packages(node_root):
@@ -246,8 +291,6 @@ def main():
         return 1
 
     from comfy_env import IsolatedEnvManager, discover_config
-
-    node_root = Path(__file__).parent.absolute()
 
     # Load environment config from comfyui_env.toml (v2 schema)
     config = discover_config(node_root)

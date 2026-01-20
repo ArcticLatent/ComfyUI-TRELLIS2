@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import folder_paths
-from comfy_env import isolated
+from .utils.isolation import isolated
 
 # logger import fix
 try:

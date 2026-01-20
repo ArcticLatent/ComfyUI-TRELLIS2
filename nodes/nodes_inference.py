@@ -3,7 +3,7 @@
 All GPU inference runs inside isolated subprocess via @isolated decorator.
 """
 
-from comfy_env import isolated
+from .utils.isolation import isolated
 
 
 @isolated(env="trellis2", import_paths=[".", ".."])
