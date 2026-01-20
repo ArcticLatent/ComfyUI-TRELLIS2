@@ -7,6 +7,11 @@ import os
 import traceback
 from unittest.mock import MagicMock
 
+# Ensure trellis2 package is importable when running inside ComfyUI venv.
+_NODE_ROOT = os.path.dirname(__file__)
+if _NODE_ROOT not in sys.path:
+    sys.path.insert(0, _NODE_ROOT)
+
 # Track initialization status
 INIT_SUCCESS = False
 INIT_ERRORS = []

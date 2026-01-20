@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import sys
+import importlib.util
 
 
 def copy_assets_to_input():
@@ -36,12 +37,7 @@ def _ensure_cuda_wheels():
         "https://huggingface.co/datasets/arcticlatent/trellis2/resolve/main/o_voxel-0.0.1-cp312-cp312-linux_x86_64.whl",
     ]
     modules = ["cumesh", "flex_gemm", "nvdiffrast", "nvdiffrec_render", "o_voxel"]
-    missing = []
-    for name in modules:
-        try:
-            __import__(name)
-        except Exception:
-            missing.append(name)
+    missing = [name for name in modules if importlib.util.find_spec(name) is None]
 
     if not missing:
         return
