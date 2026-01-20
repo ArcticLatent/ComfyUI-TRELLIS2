@@ -4,9 +4,7 @@ ComfyUI custom nodes for [TRELLIS.2](https://github.com/microsoft/TRELLIS.2) - M
 
 Generate high-quality 3D meshes with PBR (Physically Based Rendering) materials from a single image.
 
-### Install via ComfyUI Manager (Recommended)
-
-Search for "ComfyUI-TRELLIS2" in ComfyUI Manager and click install.
+You can install this custom node with Arctic ComfyUI Installer: https://github.com/ArcticLatent/linux-comfy-installer
 
 ## Example Workfloww
 
