@@ -147,6 +147,82 @@ def ensure_vcredist():
 
 
 # =============================================================================
+# comfy-env bootstrap
+# =============================================================================
+
+def _get_comfyui_venv_python(node_root):
+    """Return ComfyUI venv python path if it exists, otherwise None."""
+    comfyui_root = node_root.parent.parent
+    if platform.system() == "Windows":
+        python_path = comfyui_root / "venv" / "Scripts" / "python.exe"
+    else:
+        python_path = comfyui_root / "venv" / "bin" / "python"
+    return python_path if python_path.exists() else None
+
+
+def ensure_comfy_env(node_root):
+    """Ensure comfy-env is installed in the ComfyUI venv (or current env)."""
+    try:
+        import comfy_env  # noqa: F401
+        return True
+    except Exception:
+        print("[TRELLIS2] comfy-env not found; attempting to install it...")
+
+    venv_python = _get_comfyui_venv_python(node_root)
+    python_exec = str(venv_python) if venv_python else sys.executable
+    if venv_python:
+        print(f"[TRELLIS2] Using ComfyUI venv python: {venv_python}")
+    else:
+        print("[TRELLIS2] ComfyUI venv python not found; using current Python.")
+
+    try:
+        result = subprocess.run(
+            [python_exec, "-m", "pip", "install", "comfy-env>=0.0.11"],
+            check=False
+        )
+    except Exception as e:
+        print(f"[TRELLIS2] Failed to run pip: {e}")
+        return False
+
+    if result.returncode != 0:
+        print(f"[TRELLIS2] pip exited with code {result.returncode}")
+        return False
+
+    try:
+        import comfy_env  # noqa: F401
+        return True
+    except Exception as e:
+        print(f"[TRELLIS2] comfy-env still not importable: {e}")
+        return False
+
+
+def ensure_venv_packages(node_root):
+    """Ensure required packages are installed in the ComfyUI venv."""
+    packages = ["easydict", "plyfile", "zstandard", "trimesh"]
+    venv_python = _get_comfyui_venv_python(node_root)
+    python_exec = str(venv_python) if venv_python else sys.executable
+    if venv_python:
+        print(f"[TRELLIS2] Using ComfyUI venv python: {venv_python}")
+    else:
+        print("[TRELLIS2] ComfyUI venv python not found; using current Python.")
+
+    try:
+        result = subprocess.run(
+            [python_exec, "-m", "pip", "install", *packages],
+            check=False
+        )
+    except Exception as e:
+        print(f"[TRELLIS2] Failed to run pip: {e}")
+        return False
+
+    if result.returncode != 0:
+        print(f"[TRELLIS2] pip exited with code {result.returncode}")
+        return False
+
+    return True
+
+
+# =============================================================================
 # Main Installation
 # =============================================================================
 
@@ -160,6 +236,14 @@ def main():
     if not ensure_vcredist():
         print("[TRELLIS2] WARNING: VC++ Redistributable installation failed.")
         print("[TRELLIS2] Some features may not work. Continuing anyway...")
+
+    if not ensure_comfy_env(node_root):
+        print("[TRELLIS2] ERROR: comfy-env is required for installation.")
+        return 1
+
+    if not ensure_venv_packages(node_root):
+        print("[TRELLIS2] ERROR: Failed to install required venv packages.")
+        return 1
 
     from comfy_env import IsolatedEnvManager, discover_config
 
