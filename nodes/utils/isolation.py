@@ -7,6 +7,7 @@ def _noop_isolated(*_args, **_kwargs):
     return decorator
 
 
-isolated = _noop_isolated()
+def isolated(*_args, **_kwargs):
+    return _noop_isolated(*_args, **_kwargs)
 
 __all__ = ["isolated"]
