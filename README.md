@@ -20,10 +20,6 @@ https://github.com/user-attachments/assets/e28e4a74-b119-4303-8e30-63361f26aa88
 
 This repo is for my custom Arctic Latent installation of ComfyUI with my custom ComfyUI Linux install tool. If you are on Windows or using a different Linux installation, please use: https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2
 
-## Notes
-
-The video render nodes will be implemented soon! Not yet working.
-
 ## Manual Model Download
 
 Models are downloaded automatically from HuggingFace on first run. If you need to download manually:
@@ -58,19 +54,7 @@ ComfyUI/models/trellis2/
 - DinoV3: `facebook/dinov3-vitl16-pretrain-lvd1689m`
 - BiRefNet: `briaai/RMBG-2.0`
 
-## Community
-
-Questions or feature requests? Open a [Discussion](https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2/discussions) on GitHub.
-
-Join the [Comfy3D Discord](https://discord.gg/bcdQCUjnHE) for help, updates, and chat about 3D workflows in ComfyUI.
-
 ## Credits
 
 - [TRELLIS.2](https://github.com/microsoft/TRELLIS.2) by Microsoft Research
 - [ComfyUI-TRELLIS2](https://github.com/PozzettiAndrea/ComfyUI-TRELLIS2) by Andrea Pozzetti
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-Thank you @fire for pointing out the segment_reduce bug!
